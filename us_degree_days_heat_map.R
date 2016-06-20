@@ -25,7 +25,7 @@ dd <- select(dd, fips, year, month, dday30C)
    group_by(year, month) %>% 
    summarise(dm30 = mean(dm30))
              
-
+saveRDS(dd_temp, "/run/media/john/1TB/Projects/US-Degree-Days-Heat-Map/aggregated_us_degree_days_1900-2013.rds")
 
 # plot heatmap
 gg <- ggplot(dd_temp, aes(month, year, fill = dm30)) + geom_tile(color = "white", size = .10) + 
