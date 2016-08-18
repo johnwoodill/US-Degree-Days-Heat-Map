@@ -15,19 +15,21 @@ library(ggthemes)
 
 dd <- readRDS("/run/media/john/1TB/Projects/US-Degree-Days-Heat-Map/Data/fips_degree_days_1900-2013.rds")
 dd <- as.data.frame(dd)
-dd <- select(dd, fips, year, month, dday30C)
+dd <- select(dd, fips, year, month, dday30C, tavg)
 
- dd <- dd %>% 
+dd <- dd %>% 
    group_by(month) %>% 
-   mutate(dm30 = (dday30C - mean(dday30C))/sd(dday30C))
+   mutate(dm30 = (dday30C - mean(dday30C))/sd(dday30C),
+          dmtavg = (tavg - mean(tavg))/sd(tavg))
 
  dd_temp <- dd %>% 
    group_by(year, month) %>% 
-   summarise(dm30 = mean(dm30))
+   summarise(dm30 = mean(dm30),
+             dmtavg = mean(dmtavg))
              
 saveRDS(dd_temp, "/run/media/john/1TB/Projects/US-Degree-Days-Heat-Map/aggregated_us_degree_days_1900-2013.rds")
 
-# plot heatmap
+# plot heatmap for degree > 30
 gg <- ggplot(dd_temp, aes(month, year, fill = dm30)) + geom_tile(color = "white", size = .10) + 
   scale_fill_viridis(name="Diff. from \nAverage ",option="A")
 
@@ -44,3 +46,19 @@ gg + theme_classic() +
   xlab(NULL) + ylab(NULL) + 
   theme_tufte(base_family="Helvetica")
 
+# plot heatmap for tavg
+gg <- ggplot(dd_temp, aes(month, year, fill = dmtavg)) + geom_tile(color = "white", size = .10) + 
+  scale_fill_viridis(name="Diff. from \nAverage ",option="A")
+
+gg <- gg +
+  coord_cartesian(ylim = c(1900,2013)) +
+  scale_y_continuous(breaks = seq(1900,2013, by=10)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                     labels = c("Jan", "Feb", "Mar", "Apr",
+                                "May", "Jun", "Jul", "Aug", "Sep",
+                                "Oct", "Nov", "Dec"))
+gg + theme_classic() + 
+  ggtitle("Continental United States (Average Temp.)") + 
+  xlab(NULL) + ylab(NULL) + 
+  theme_tufte(base_family="Helvetica")
